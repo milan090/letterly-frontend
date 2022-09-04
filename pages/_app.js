@@ -41,15 +41,7 @@ function MyApp({ Component, pageProps }) {
               alt: "Og Image Alt",
               type: "image/jpeg",
             },
-            {
-              url: "https://www.example.ie/og-image-02.jpg",
-              width: 900,
-              height: 800,
-              alt: "Og Image Alt Second",
-              type: "image/jpeg",
-            },
-            { url: "https://www.example.ie/og-image-03.jpg" },
-            { url: "https://www.example.ie/og-image-04.jpg" },
+    
           ],
           site_name: "Letterly",
         }}
