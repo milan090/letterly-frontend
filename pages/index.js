@@ -48,7 +48,7 @@ const CAT_PICS = [
   "cat-wink.svg",
   "cat-sleepy.svg",
   "cat-please.svg",
-  "cat.svg",
+  "cat.png",
 ];
 
 const catPic = CAT_PICS[Math.floor(Math.random() * CAT_PICS.length)];
