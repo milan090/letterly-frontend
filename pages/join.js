@@ -100,6 +100,7 @@ export default function Join() {
         <InputGroup>
           <label htmlFor="name">Name</label>
           <input
+            autoComplete="off"
             id="name"
             type="text"
             placeholder="Enter your name"

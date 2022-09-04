@@ -29,8 +29,6 @@ const GameContainer = styled("div", {
   alignItems: "center",
 });
 
-
-
 const GameBar = styled("div", {
   width: "100%",
   display: "flex",
@@ -61,8 +59,6 @@ const GameStatus = styled("span", {
 });
 
 export default function Play() {
-  
-
   const [sessionID, setSessionID] = useSessionStore((s) => [
     s.sessionID,
     s.setSessionID,
@@ -71,6 +67,7 @@ export default function Play() {
   const router = useRouter();
 
   const { state: gameState } = useReadChannelState(router.query.roomId);
+  const gameFinished = gameState?.game === "finished";
 
   useEffect(() => {
     console.log("Game state", gameState);
@@ -78,13 +75,29 @@ export default function Play() {
 
   // const currentPlayer = players[0];
   const currentPlayer = gameState?.currentPlayer;
-  
+
   const players = gameState?.players || [];
   const playerCount = players?.length || 0;
 
   const stage = gameState?.stage || 1;
   const round = gameState?.round || 1;
   const roundsPerStage = gameState?.roundsPerStage || 3;
+
+  let gameMode = "";
+  switch (gameState?.stage) {
+    case 1:
+      gameMode = "Last Letter";
+      break;
+    case 2:
+      gameMode = "Part of Word";
+      break;
+    case 3:
+      gameMode = "Guess the Word";
+      break;
+    default:
+      gameMode = "";
+
+  }
 
   return (
     <PageContainer css={{ alignItems: "center" }}>
@@ -94,20 +107,38 @@ export default function Play() {
         <PlayersList players={players} playerCount={playerCount} />
         <GameContainer>
           <GameBar>
-            <GameInfo>
-              <StageTitle>Stage {stage}: Last Letter</StageTitle>
-              <StageRound>(Round {round}/{roundsPerStage})</StageRound>
-            </GameInfo>
-            <GameStatus>Waiting for input...</GameStatus>
+            {gameFinished ? (
+              <GameInfo>
+                <StageTitle>Game Over</StageTitle>
+              </GameInfo>
+            ) : (
+              <>
+                <GameInfo>
+                  <StageTitle>Stage {stage}: {gameMode}</StageTitle>
+                  <StageRound>
+                    (Round {round}/{roundsPerStage})
+                  </StageRound>
+                </GameInfo>
+                <GameStatus>Waiting for input...</GameStatus>
+              </>
+            )}
           </GameBar>
           {currentPlayer ? (
-              <Game />
+            <Game />
           ) : sessionID === gameState?.host ? (
             <InviteFriends playerCount={playerCount} />
           ) : (
-            <div style={{ display: "flex", alignItems: "center", flexDirection: "column" }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                flexDirection: "column",
+              }}
+            >
               <Image src="/cat-sleepy.svg" width={200} height={200} />
-              <h3 style={{ marginTop: "1rem" }}>Waiting for host to start the game...</h3>
+              <h3 style={{ marginTop: "1rem" }}>
+                Waiting for host to start the game...
+              </h3>
             </div>
           )}
         </GameContainer>

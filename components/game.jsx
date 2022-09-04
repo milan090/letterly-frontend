@@ -5,6 +5,9 @@ import { styled } from "../config/theme";
 import { useSessionStore } from "../store/session";
 import { submitAnswer } from "../utils/room";
 import { TimeProgressBar } from "./time-progress";
+import useWindowSize from "react-use/lib/useWindowSize";
+import Confetti from "react-confetti";
+import Image from "next/image";
 
 const PlayerInputContainer = styled("form", {
   display: "flex",
@@ -58,8 +61,19 @@ const PlayerAnswer = styled("div", {
   padding: "0.5rem 1rem",
   borderRadius: "0.5rem 0.5rem 0.5rem 0",
 
-  right: "-5rem",
-  top: 0
+  right: "-7rem",
+  top: 0,
+
+  variants: {
+    isCorrect: {
+      true: {
+        background: "$success",
+      },
+      false: {
+        background: "$error",
+      },
+    },
+  },
 });
 
 export const Game = () => {
@@ -67,14 +81,12 @@ export const Game = () => {
   const roomId = router.query.roomId;
   const [sessionID] = useSessionStore((state) => [state.sessionID]);
   const { state: gameState } = useReadChannelState(roomId);
+  const gameFinished = gameState?.game === "finished";
 
-  const [playerAnswer, setPlayerAnswer] = useState("");
+  const [playerAnswer, setPlayerAnswer] = useState(null);
 
   useChannelMessage(roomId, "PLAYER_ANSWER", (answer) => {
-    console.log("Player answer", answer);
-    if (answer.player !== sessionID) {
-      setPlayerAnswer(answer.word);
-    }
+    setPlayerAnswer(answer);
   });
 
   const players = gameState?.players || [];
@@ -89,9 +101,12 @@ export const Game = () => {
     gameState?.playerEndTime && new Date(gameState.playerEndTime);
   const currentTime = new Date();
 
+  const { width, height } = useWindowSize();
+
   const handleSubmit = (e) => {
     e.preventDefault();
 
+    setPlayerInput("");
     submitAnswer(router.query.roomId, playerInput).then((res) =>
       console.log("answer", res)
     );
@@ -100,12 +115,34 @@ export const Game = () => {
   useEffect(() => {
     if (playerAnswer) {
       setTimeout(() => {
-        setPlayerAnswer("");
+        setPlayerAnswer(null);
       }, 3000);
     }
   }, [playerAnswer]);
 
-  const word = gameState.stage1Word?.toUpperCase();
+  const stage1Word =
+    gameState.stage === 1 && gameState.stage1Word?.toUpperCase();
+  const stage2Word =
+    gameState.stage === 2 && gameState.stage2Word?.toUpperCase();
+  const stage3Word = gameState.stage === 3 && gameState.stage3Word;
+
+  if (gameFinished) {
+    const maxScore = Math.max(...gameState.players.map((p) => p.score));
+    const winner = gameState.players.find(
+      (player) => player.score === maxScore
+    );
+    return (
+      <div style={{ marginTop: "2rem", textAlign: "center" }}>
+        <Confetti width={width} height={height} />
+        <img
+          src={`https://avatars.dicebear.com/api/adventurer-neutral/${currentPlayer?.userName}.svg`}
+          height={150}
+          alt={currentPlayer?.userName}
+        />
+        <h1 style={{ marginTop: "2rem" }}>Winner: {winner?.userName}</h1>
+      </div>
+    );
+  }
 
   return (
     <GameContent htmlFor="answer">
@@ -116,16 +153,27 @@ export const Game = () => {
           alt={currentPlayer?.userName}
         ></img>
         {playerAnswer && (
-          <PlayerAnswer>{playerAnswer.toUpperCase()}</PlayerAnswer>
+          <PlayerAnswer isCorrect={!!playerAnswer.scoreDelta}>
+            {playerAnswer.word.toUpperCase()}{" "}
+            <strong>
+              {playerAnswer.scoreDelta && `${playerAnswer.scoreDelta}+`}
+            </strong>
+          </PlayerAnswer>
         )}
       </div>
       <GameMessage css={{ textAlign: "center", marginTop: "1rem" }}>
-        It&apos;s <PrimaryText>{currentPlayer?.userName}&apos;s</PrimaryText>{" "}
+        It&apos;s{" "}
+        <PrimaryText>
+          {sessionID === currentPlayer.sessionID
+            ? "your"
+            : `${currentPlayer?.userName}'s`}
+        </PrimaryText>{" "}
         turn
       </GameMessage>
       {sessionID === currentPlayerId && (
         <PlayerInputContainer onSubmit={handleSubmit}>
           <PlayerInput
+            autoComplete="off"
             value={playerInput}
             placeholder="TYPE"
             id="answer"
@@ -135,10 +183,24 @@ export const Game = () => {
         </PlayerInputContainer>
       )}
       <GameHintMessage>
-        Word: {word.substring(0, word.length - 1)}
-        <Text css={{ color: "$primary" }}>
-          {word.substring(word.length - 1)}
-        </Text>
+        {stage1Word && (
+          <>
+            Word: {stage1Word.substring(0, stage1Word.length - 1)}
+            <Text css={{ color: "$primary" }}>
+              {stage1Word.substring(stage1Word.length - 1)}
+            </Text>
+          </>
+        )}
+        {stage2Word && (
+          <>
+            Part of word: <Text css={{ color: "$primary" }}>{stage2Word}</Text>
+          </>
+        )}
+        {stage3Word && (
+          <p style={{ maxWidth: "700px", textAlign: "center", marginTop: "1rem" }}>
+            Definition: <Text>{stage3Word.definition}</Text>
+          </p>
+        )}
       </GameHintMessage>
       {playerStartTime && playerEndTime && currentTime && (
         <TimeProgressBar

@@ -1,4 +1,4 @@
-import { useReadChannelState } from "@onehop/react";
+import { useChannelMessage, useReadChannelState } from "@onehop/react";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { styled } from "../config/theme";
@@ -41,22 +41,107 @@ export const TimeProgressBar = (props) => {
   const progress = clamp(elapsedTime / totalDuration, 0, 1) * 100;
 
   const router = useRouter();
+  const roomId = router.query.roomId;
   const [sessionID] = useSessionStore((state) => [state.sessionID]);
-  const { state: gameState } = useReadChannelState(router.query.roomId);
+  const { state: gameState } = useReadChannelState(roomId);
+
+  const [tickTokAudio] = useState(new Audio("/audio/tick-tok.mp3"));
+  const [tickTokPlaying, setTickTokPlaying] = useState(false);
+
+  const [tickTokFastAudio] = useState(new Audio("/audio/tick-tok-fast.mp3"));
+  const [tickTokFastPlaying, setTickTokFastPlaying] = useState(false);
+
+  const [ringAudio] = useState(new Audio("/audio/ring.mp3"));
+  const [ringPlaying, setRingPlaying] = useState(false);
+
+  const [countDownInterval, setCountDownInterval] = useState(null);
+
+  const gameFinished = gameState.game === "finished";
+  useChannelMessage(roomId, "PLAYER_ANSWER", (answer) => {
+    console.log("your", answer);
+    if (countDownInterval) {
+      clearInterval(countDownInterval);
+      setCountDownInterval(null);
+
+      if (tickTokPlaying || tickTokFastPlaying) {
+        tickTokAudio.pause();
+        setTickTokPlaying(false);
+        tickTokAudio.currentTime = 0;
+
+        tickTokFastAudio.pause();
+        setTickTokFastPlaying(false);
+        tickTokFastAudio.currentTime = 0;
+      }
+    }
+  });
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 100);
-    return () => clearInterval(interval);
+    if (gameState.game !== "finished") {
+      const interval = setInterval(() => {
+        setCurrentTime(new Date());
+      }, 100);
+      setCountDownInterval(interval);
+      return () => {
+        clearInterval(interval);
+        setCountDownInterval(null);
+      };
+    }
   }, [playerEndTime, playerStartTime]);
 
   useEffect(() => {
-    const isHost = sessionID === gameState?.host;
-    const roomId = router.query.roomId;
+    if (countDownInterval) {
+      const timeLeftSeconds = timeLeft / 1000;
+      const durationSeconds = totalDuration / 1000;
 
-    if (isHost && roomId && progress === 100) {
-      nextPlayer(roomId).then((res) => console.log(res));
+      if (timeLeftSeconds < durationSeconds) {
+        if (timeLeftSeconds > 2 && !tickTokPlaying) {
+          tickTokAudio.play();
+          setTickTokPlaying(true);
+          setTickTokFastPlaying(false);
+          setRingPlaying(false);
+        } else if (
+          timeLeftSeconds <= 2 &&
+          timeLeftSeconds > 0 &&
+          !tickTokFastPlaying
+        ) {
+          tickTokAudio.pause();
+          tickTokAudio.currentTime = 0;
+          tickTokFastAudio.play();
+          setTickTokFastPlaying(true);
+          setTickTokPlaying(false);
+          setRingPlaying(false);
+        } else if (timeLeftSeconds <= 0 && !ringPlaying) {
+          tickTokAudio.pause();
+          tickTokAudio.currentTime = 0;
+          tickTokFastAudio.pause();
+          tickTokFastAudio.currentTime = 0;
+          ringAudio.play();
+          setRingPlaying(true);
+          setTickTokFastPlaying(false);
+          setTickTokPlaying(false);
+        }
+      }
+    }
+  }, [
+    ringAudio,
+    ringPlaying,
+    tickTokAudio,
+    tickTokFastAudio,
+    tickTokFastPlaying,
+    tickTokPlaying,
+    timeLeft,
+    totalDuration,
+  ]);
+
+  useEffect(() => {
+    if (!gameFinished) {
+      const isHost = sessionID === gameState?.host;
+      const roomId = router.query.roomId;
+
+      if (isHost && roomId && progress === 100) {
+        console.log(roomId);
+        nextPlayer(roomId).then((res) => console.log(res));
+      }
     }
   }, [gameState?.host, progress, router.query.roomId, sessionID]);
 
