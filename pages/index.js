@@ -47,6 +47,7 @@ const CAT_PICS = [
   "cat-fine.svg",
   "cat-wink.svg",
   "cat-sleepy.svg",
+  "cat-please.svg",
   "cat.svg"
 ]
 
