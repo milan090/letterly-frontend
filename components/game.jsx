@@ -1,6 +1,6 @@
-import { useReadChannelState } from "@onehop/react";
+import { useChannelMessage, useReadChannelState } from "@onehop/react";
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { styled } from "../config/theme";
 import { useSessionStore } from "../store/session";
 import { submitAnswer } from "../utils/room";
@@ -26,7 +26,7 @@ const PlayerInput = styled("input", {
   },
 });
 
-const GameContent = styled("div", {
+const GameContent = styled("label", {
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
@@ -51,10 +51,31 @@ const Text = styled("span", {
   color: "$light",
 });
 
+const PlayerAnswer = styled("div", {
+  position: "absolute",
+  background: "$light",
+  color: "$dark",
+  padding: "0.5rem 1rem",
+  borderRadius: "0.5rem 0.5rem 0.5rem 0",
+
+  right: "-5rem",
+  top: 0
+});
+
 export const Game = () => {
   const router = useRouter();
+  const roomId = router.query.roomId;
   const [sessionID] = useSessionStore((state) => [state.sessionID]);
-  const { state: gameState } = useReadChannelState(router.query.roomId);
+  const { state: gameState } = useReadChannelState(roomId);
+
+  const [playerAnswer, setPlayerAnswer] = useState("");
+
+  useChannelMessage(roomId, "PLAYER_ANSWER", (answer) => {
+    console.log("Player answer", answer);
+    if (answer.player !== sessionID) {
+      setPlayerAnswer(answer.word);
+    }
+  });
 
   const players = gameState?.players || [];
   const currentPlayerId = gameState?.currentPlayer;
@@ -71,19 +92,33 @@ export const Game = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    submitAnswer(router.query.roomId, playerInput);
+    submitAnswer(router.query.roomId, playerInput).then((res) =>
+      console.log("answer", res)
+    );
   };
 
+  useEffect(() => {
+    if (playerAnswer) {
+      setTimeout(() => {
+        setPlayerAnswer("");
+      }, 3000);
+    }
+  }, [playerAnswer]);
+
   const word = gameState.stage1Word?.toUpperCase();
-  
 
   return (
-    <GameContent>
-      <img
-        src={`https://avatars.dicebear.com/api/adventurer-neutral/${currentPlayer?.userName}.svg`}
-        height={250}
-        alt={currentPlayer?.userName}
-      />
+    <GameContent htmlFor="answer">
+      <div style={{ position: "relative" }}>
+        <img
+          src={`https://avatars.dicebear.com/api/adventurer-neutral/${currentPlayer?.userName}.svg`}
+          height={250}
+          alt={currentPlayer?.userName}
+        ></img>
+        {playerAnswer && (
+          <PlayerAnswer>{playerAnswer.toUpperCase()}</PlayerAnswer>
+        )}
+      </div>
       <GameMessage css={{ textAlign: "center", marginTop: "1rem" }}>
         It&apos;s <PrimaryText>{currentPlayer?.userName}&apos;s</PrimaryText>{" "}
         turn
@@ -93,12 +128,17 @@ export const Game = () => {
           <PlayerInput
             value={playerInput}
             placeholder="TYPE"
+            id="answer"
+            autoFocus
             onChange={(e) => setPlayerInput(e.target.value)}
           />
         </PlayerInputContainer>
       )}
       <GameHintMessage>
-        Word: {word.substring(0, word.length-1)}<Text css={{ color: "$primary" }}>{word.substring(word.length-1)}</Text>
+        Word: {word.substring(0, word.length - 1)}
+        <Text css={{ color: "$primary" }}>
+          {word.substring(word.length - 1)}
+        </Text>
       </GameHintMessage>
       {playerStartTime && playerEndTime && currentTime && (
         <TimeProgressBar
