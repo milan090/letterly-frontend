@@ -81,6 +81,10 @@ export default function Play() {
   const players = gameState?.players || [];
   const playerCount = players?.length || 0;
 
+  const stage = gameState?.stage || 1;
+  const round = gameState?.round || 1;
+  const roundsPerStage = gameState?.roundsPerStage || 3;
+
   return (
     <PageContainer css={{ alignItems: "center" }}>
       <Navbar playerCount={playerCount} />
@@ -90,8 +94,8 @@ export default function Play() {
         <GameContainer>
           <GameBar>
             <GameInfo>
-              <StageTitle>Stage {gameState.stage}: Last Letter</StageTitle>
-              <StageRound>(Round {gameState.round}/{gameState.roundsPerStage})</StageRound>
+              <StageTitle>Stage {stage}: Last Letter</StageTitle>
+              <StageRound>(Round {round}/{roundsPerStage})</StageRound>
             </GameInfo>
             <GameStatus>Waiting for input...</GameStatus>
           </GameBar>
