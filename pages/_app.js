@@ -5,6 +5,7 @@ import { initializeHop } from "../config/hop";
 import "../styles/globals.css";
 
 import { useSessionStore } from "../store/session";
+import { DefaultSeo } from "next-seo";
 
 function MyApp({ Component, pageProps }) {
   const [sessionID, setSessionID] = useSessionStore((s) => [
@@ -22,7 +23,45 @@ function MyApp({ Component, pageProps }) {
     api.defaults.headers.sessionID = sessionID;
   }, [sessionID, setSessionID]);
 
-  return <Component {...pageProps} />;
+  return (
+    <>
+      <DefaultSeo
+        title="Letterly"
+        description="Fun vocabulary game for friends and family"
+        canonical="https://www.canonical.ie/"
+        openGraph={{
+          url: "https://www.url.ie/a",
+          title: "Letterly",
+          description: "Fun vocabulary game for friends and family",
+          images: [
+            {
+              url: "https://www.example.ie/og-image-01.jpg",
+              width: 800,
+              height: 600,
+              alt: "Og Image Alt",
+              type: "image/jpeg",
+            },
+            {
+              url: "https://www.example.ie/og-image-02.jpg",
+              width: 900,
+              height: 800,
+              alt: "Og Image Alt Second",
+              type: "image/jpeg",
+            },
+            { url: "https://www.example.ie/og-image-03.jpg" },
+            { url: "https://www.example.ie/og-image-04.jpg" },
+          ],
+          site_name: "Letterly",
+        }}
+        twitter={{
+          handle: "@handle",
+          site: "@site",
+          cardType: "summary_large_image",
+        }}
+      />
+      <Component {...pageProps} />
+    </>
+  );
 }
 
 export default MyApp;
