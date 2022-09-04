@@ -24,21 +24,21 @@ function MyApp({ Component, pageProps }) {
   }, [sessionID, setSessionID]);
 
   return (
-    <>
+    <div>
       <DefaultSeo
         title="Letterly"
         description="Fun vocabulary game for friends and family"
-        canonical="https://www.canonical.ie/"
+        canonical="https://letterly.hop.sh/"
         openGraph={{
-          url: "https://www.url.ie/a",
+          url: "https://letterly.hop.sh/",
           title: "Letterly",
           description: "Fun vocabulary game for friends and family",
           images: [
             {
-              url: "https://www.example.ie/og-image-01.jpg",
+              url: "https://letterly.hop.sh/preview.png",
               width: 800,
               height: 600,
-              alt: "Og Image Alt",
+              alt: "Letterly - Fun Vocabulary Game",
               type: "image/jpeg",
             },
     
@@ -50,9 +50,15 @@ function MyApp({ Component, pageProps }) {
           site: "@site",
           cardType: "summary_large_image",
         }}
+        additionalLinkTags={[
+          {
+            rel: "shortcut icon",
+            href: "/favicon.png",
+          },
+        ]}
       />
       <Component {...pageProps} />
-    </>
+    </div>
   );
 }
 
