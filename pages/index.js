@@ -7,6 +7,7 @@ import { createRoom } from "../utils/room";
 import { Navbar } from "../components/nav-bar";
 import { Button } from "../components/button";
 import { useGameStore } from "../store/game-store";
+import Image from "next/image";
 
 const Form = styled("form", {
   margin: "auto",
@@ -42,6 +43,15 @@ const InputGroup = styled("div", {
   },
 });
 
+const CAT_PICS = [
+  "cat-fine.svg",
+  "cat-wink.svg",
+  "cat-sleepy.svg",
+  "cat.svg"
+]
+
+const catPic = CAT_PICS[Math.floor(Math.random()*CAT_PICS.length)];
+
 export default function Home() {
   const [username, setUsername] = useState("");
   const router = useRouter();
@@ -69,6 +79,7 @@ export default function Home() {
       <Navbar/>
 
       <Form onSubmit={handleSubmit}>
+      <Image src={`/${catPic}`} width={200} height={200} />
         <InputGroup>
           <label htmlFor="name">Name</label>
           <input id="name" type="text" placeholder="Enter your name" value={username} onChange={e => setUsername(e.target.value)} />

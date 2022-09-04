@@ -10,6 +10,7 @@ import { styled } from "../config/theme";
 import { InviteFriends } from "../components/invite-friends";
 import { useSessionStore } from "../store/session";
 import { Game } from "../components/game";
+import Image from "next/image";
 
 const Container = styled("div", {
   margin: "0 auto",
@@ -104,7 +105,10 @@ export default function Play() {
           ) : sessionID === gameState?.host ? (
             <InviteFriends playerCount={playerCount} />
           ) : (
-            "Wait for host to start the game"
+            <div style={{ display: "flex", alignItems: "center", flexDirection: "column" }}>
+              <Image src="/cat-sleepy.svg" width={200} height={200} />
+              <h3 style={{ marginTop: "1rem" }}>Waiting for host to start the game...</h3>
+            </div>
           )}
         </GameContainer>
       </Container>

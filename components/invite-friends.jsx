@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import CopyToClipboard from "react-copy-to-clipboard";
@@ -42,6 +43,7 @@ export const InviteFriends = (props) => {
 
   return (
     <InviteFriendsContainer>
+    <Image src="/cat-wink.svg" width={200} height={200} />
       Invite your friends to play with you. Share this link: <br />
       <Text
         css={{
