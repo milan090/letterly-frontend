@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import CopyToClipboard from "react-copy-to-clipboard";
 import { FiCopy } from "react-icons/fi";
 import { styled } from "../config/theme";
+import { startGame } from "../utils/room";
 import { Button } from "./button";
 
 const InviteFriendsContainer = styled("div", {
@@ -21,6 +22,18 @@ export const InviteFriends = (props) => {
   const [gameLink, setGameLink] = useState("");
   const playerCount = props.playerCount;
   const [copied, setCopied] = useState(false);
+
+  const handleGameStart = async () => {
+    const roomId = router.query.roomId;
+    const roundsPerStage = 3;
+
+    if (!roomId) {
+      throw new Error("No room id");
+    }
+
+    const res = await startGame(roomId, roundsPerStage);
+    console.log(res);
+  };
 
   useEffect(() => {
     const { roomId } = router.query;
@@ -50,14 +63,12 @@ export const InviteFriends = (props) => {
             setTimeout(() => setCopied(false), 3000);
           }}
         >
-          <FiCopy
-            size="2rem"
-            color={copied ? "#E2B714" : "white"}
-            
-          />
+          <FiCopy size="2rem" color={copied ? "#E2B714" : "white"} />
         </CopyToClipboard>
       </Text>
-      <Button disabled={playerCount <= 1}>START GAME</Button>
+      <Button onClick={handleGameStart} disabled={playerCount <= 1}>
+        START GAME
+      </Button>
       {playerCount <= 1 && (
         <Text css={{ color: "$light", marginTop: "1rem" }}>
           You need at least 2 players to start the game

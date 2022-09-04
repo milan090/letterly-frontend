@@ -7,11 +7,9 @@ import { Navbar } from "../components/nav-bar";
 import { PageContainer } from "../components/page-container";
 import { PlayersList } from "../components/players-list";
 import { styled } from "../config/theme";
-import { useGameStore } from "../store/game-store";
-import { FiCopy } from "react-icons/fi";
-import { CopyToClipboard } from "react-copy-to-clipboard";
 import { InviteFriends } from "../components/invite-friends";
 import { useSessionStore } from "../store/session";
+import { Game } from "../components/game";
 
 const Container = styled("div", {
   margin: "0 auto",
@@ -30,14 +28,7 @@ const GameContainer = styled("div", {
   alignItems: "center",
 });
 
-const PrimaryText = styled("span", {
-  color: "$primary",
-});
 
-const GameMessage = styled("h2", {
-  fontSize: "2rem",
-  fontWeight: "bold",
-});
 
 const GameBar = styled("div", {
   width: "100%",
@@ -68,39 +59,8 @@ const GameStatus = styled("span", {
   fontFamily: "monospace",
 });
 
-const PlayerInputContainer = styled("div", {
-  display: "flex",
-});
-
-const PlayerInput = styled("input", {
-  border: "none",
-  outline: "none",
-  padding: "0.5rem",
-  fontSize: "4rem",
-  fontWeight: "bold",
-  background: "none",
-  color: "white",
-  textTransform: "uppercase",
-  textAlign: "center",
-
-  "&::placeholder": {
-    color: "$lighter",
-  },
-});
-
-const GameContent = styled("div", {
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-});
-
-const GameHintMessage = styled("p", {
-  fontSize: "1.2rem",
-  fontFamily: "monospace",
-});
-
 export default function Play() {
-  const [playerInput, setPlayerInput] = useState("");
+  
 
   const [sessionID, setSessionID] = useSessionStore((s) => [
     s.sessionID,
@@ -116,7 +76,7 @@ export default function Play() {
   }, [gameState]);
 
   // const currentPlayer = players[0];
-  const currentPlayer = null;
+  const currentPlayer = gameState?.currentPlayer;
   
   const players = gameState?.players || [];
   const playerCount = players?.length || 0;
@@ -130,32 +90,13 @@ export default function Play() {
         <GameContainer>
           <GameBar>
             <GameInfo>
-              <StageTitle>Stage 1: Last Letter</StageTitle>
-              <StageRound>(Round 3)</StageRound>
+              <StageTitle>Stage {gameState.stage}: Last Letter</StageTitle>
+              <StageRound>(Round {gameState.round}/{gameState.roundsPerStage})</StageRound>
             </GameInfo>
             <GameStatus>Waiting for input...</GameStatus>
           </GameBar>
           {currentPlayer ? (
-            <GameContent>
-              <img
-                src={`https://avatars.dicebear.com/api/adventurer-neutral/${currentPlayer.name}.svg`}
-                height={250}
-              />
-              <GameMessage css={{ textAlign: "center", marginTop: "1rem" }}>
-                It&apos;s <PrimaryText>{currentPlayer.name}&apos;s</PrimaryText>{" "}
-                turn
-              </GameMessage>
-              <PlayerInputContainer>
-                <PlayerInput
-                  value={playerInput}
-                  placeholder="TYPE"
-                  onChange={(e) => setPlayerInput(e.target.value)}
-                />
-              </PlayerInputContainer>
-              <GameHintMessage>
-                HINT:Enter word starting with letter A
-              </GameHintMessage>
-            </GameContent>
+              <Game />
           ) : sessionID === gameState?.host ? (
             <InviteFriends playerCount={playerCount} />
           ) : (
