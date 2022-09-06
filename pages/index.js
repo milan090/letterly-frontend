@@ -58,16 +58,23 @@ export default function Home() {
   const router = useRouter();
   const [setGameState] = useGameStore((s) => [s.setGameState]);
 
+  const [isLoading, setIsLoading] = useState(false);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    console.log("Creating room", username);
-    const roomData = await createRoom(username);
-    console.log(roomData);
-    setGameState(roomData);
+    setIsLoading(true);
+    try {
+      const roomData = await createRoom(username);
+      setGameState(roomData);
 
-    const roomId = roomData.id;
-    router.push(`/play?roomId=${roomId}`);
+      const roomId = roomData.id;
+      router.push(`/play?roomId=${roomId}`);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -92,7 +99,7 @@ export default function Home() {
           />
         </InputGroup>
 
-        <Button variant="primary">Create room</Button>
+        <Button isLoading={isLoading} variant="primary">Create room</Button>
       </Form>
     </PageContainer>
   );

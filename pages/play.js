@@ -11,6 +11,7 @@ import { InviteFriends } from "../components/invite-friends";
 import { useSessionStore } from "../store/session";
 import { Game } from "../components/game";
 import Image from "next/image";
+import { Join } from "../components/join";
 
 const Container = styled("div", {
   margin: "0 auto",
@@ -83,6 +84,8 @@ export default function Play() {
   const round = gameState?.round || 1;
   const roundsPerStage = gameState?.roundsPerStage || 3;
 
+  const playerInGame = players?.find((p) => p.sessionID === sessionID);
+
   let gameMode = "";
   switch (gameState?.stage) {
     case 1:
@@ -96,7 +99,17 @@ export default function Play() {
       break;
     default:
       gameMode = "";
+  }
 
+  let gameStatus = "";
+  if (gameState?.game === "finished") {
+    gameStatus = "Game Over";
+  } else if (gameState?.game === "created" && playerCount < 2) {
+    gameStatus = "Waiting for players to join...";
+  } else if (gameState?.game === "created" && playerCount >= 2) {
+    gameStatus = "Waiting for host to start...";
+  } else if (gameState?.game === "started") {
+    gameStatus = "Game Running";
   }
 
   return (
@@ -114,12 +127,14 @@ export default function Play() {
             ) : (
               <>
                 <GameInfo>
-                  <StageTitle>Stage {stage}: {gameMode}</StageTitle>
+                  <StageTitle>
+                    Stage {stage}: {gameMode}
+                  </StageTitle>
                   <StageRound>
                     (Round {round}/{roundsPerStage})
                   </StageRound>
                 </GameInfo>
-                <GameStatus>Waiting for input...</GameStatus>
+                <GameStatus>{gameStatus}</GameStatus>
               </>
             )}
           </GameBar>
@@ -128,19 +143,22 @@ export default function Play() {
           ) : sessionID === gameState?.host ? (
             <InviteFriends playerCount={playerCount} />
           ) : (
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                flexDirection: "column",
-              }}
-            >
-              <Image src="/cat-sleepy.svg" width={200} height={200} />
-              <h3 style={{ marginTop: "1rem" }}>
-                Waiting for host to start the game...
-              </h3>
-            </div>
+            playerInGame && (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  flexDirection: "column",
+                }}
+              >
+                <Image src="/cat-sleepy.svg" width={200} height={200} />
+                <h3 style={{ marginTop: "1rem" }}>
+                  Waiting for host to start the game...
+                </h3>
+              </div>
+            )
           )}
+          {!playerInGame && <Join />}
         </GameContainer>
       </Container>
     </PageContainer>

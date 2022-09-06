@@ -23,6 +23,7 @@ export const InviteFriends = (props) => {
   const [gameLink, setGameLink] = useState("");
   const playerCount = props.playerCount;
   const [copied, setCopied] = useState(false);
+  const [isStarting, setIsStarting] = useState(false);
 
   const handleGameStart = async () => {
     const roomId = router.query.roomId;
@@ -32,18 +33,24 @@ export const InviteFriends = (props) => {
       throw new Error("No room id");
     }
 
-    const res = await startGame(roomId, roundsPerStage);
-    console.log(res);
+    try {
+      setIsStarting(true);
+      await startGame(roomId, roundsPerStage);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsStarting(false);
+    }
   };
 
   useEffect(() => {
     const { roomId } = router.query;
-    setGameLink(`${window?.location.origin}/join?roomId=${roomId}`);
+    setGameLink(`${window?.location.origin}/play?roomId=${roomId}`);
   }, [router.query]);
 
   return (
     <InviteFriendsContainer>
-    <Image src="/cat-wink.svg" width={200} height={200} />
+      <Image src="/cat-wink.svg" width={200} height={200} />
       Invite your friends to play with you. Share this link: <br />
       <Text
         css={{
@@ -68,7 +75,7 @@ export const InviteFriends = (props) => {
           <FiCopy size="2rem" color={copied ? "#E2B714" : "white"} />
         </CopyToClipboard>
       </Text>
-      <Button onClick={handleGameStart} disabled={playerCount <= 1}>
+      <Button isLoading={isStarting} onClick={handleGameStart} disabled={playerCount <= 1}>
         START GAME
       </Button>
       {playerCount <= 1 && (
