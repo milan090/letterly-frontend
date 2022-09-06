@@ -135,9 +135,9 @@ export const Game = () => {
       <div style={{ marginTop: "2rem", textAlign: "center" }}>
         <Confetti width={width} height={height} />
         <img
-          src={`https://avatars.dicebear.com/api/adventurer-neutral/${currentPlayer?.userName}.svg`}
+          src={`https://avatars.dicebear.com/api/adventurer-neutral/${winner?.userName}.svg`}
           height={150}
-          alt={currentPlayer?.userName}
+          alt={winner?.userName}
         />
         <h1 style={{ marginTop: "2rem" }}>Winner: {winner?.userName}</h1>
       </div>

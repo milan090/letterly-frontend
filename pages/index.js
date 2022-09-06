@@ -79,7 +79,7 @@ export default function Home() {
       <Navbar />
 
       <Form onSubmit={handleSubmit}>
-        <Image src={`/${catPic}`} width={200} height={200} />
+        <Image priority={false} src={`/${catPic}`} width={200} height={200} />
         <InputGroup>
           <label htmlFor="name">Name</label>
           <input
